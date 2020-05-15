@@ -19,14 +19,14 @@ SSD1306Wire display(0x3c, 5, 4);
 #ifndef WIFI_CONFIG_H
 
 // WiFi creds
-#define YOUR_WIFI_SSID "SSID"
-#define YOUR_WIFI_PASSWD "PASSWORD"
+#define YOUR_WIFI_SSID "YOUR_WIFI_SSID"
+#define YOUR_WIFI_PASSWD "YOUR_WIFI_PASSWD"
 #endif // !WIFI_CONFIG_H
 
 #define ONBOARDLED 5 // Built in LED on ESP-12/ESP-07
 
 // Timezone setting
-int8_t timeZone = -4; // UTC -5:00 / -4:00 (-5 for daylight saving time)
+int8_t timeZone = -5; // UTC -5:00 / -4:00 (-5 for daylight saving time)
 int8_t minutesTimeZone = 0;
 
 // Weather data variables
@@ -42,22 +42,11 @@ int YEAR = 2020;
 
 // Weather API variables
 const String endpoint = "https://api.darksky.net/forecast/";
-const String key = "API_KEY";
+const String key = "DARKSKY_APY_KEY";
 const String latLong = "/LAT,LONG";
 const String exclusions = "?exclude=,minutely,hourly,flags&units=us";
 //https://api.darksky.net/forecast/
 
-//========================================================================================================= BATTERY VOLTAGE
-float batteryLevel()
-{
-  //float batteryLevel = map(analogRead(27), 0.0f, 4095.0f, 0, 100);  // LiPo battery level in %. Use 3.3 instead of 100 for voltage level
-  float batteryLevel = (127.0f / 100.0f) * 3.30f * float(analogRead(27)) / 4096.0f;
-  Serial.print("Battery Voltage = ");
-  Serial.print(batteryLevel, 2);
-  Serial.println(" V");
-
-  return batteryLevel;
-}
 
 //========================================================================================================= WEATHER DATA
 void weatherData()
@@ -143,6 +132,7 @@ int JulianDate(int d, int m, int y)
   return j;
 }
 
+// Calculating moon age using julian date.
 double MoonAge(int d, int m, int y)
 {
   double ip, ag;
@@ -164,7 +154,7 @@ double MoonAge(int d, int m, int y)
 
 //========================================================================================================= TIME (and print function)
 // This function takes initial date and calculate days.
-//Calculate day number from date.
+// Calculate day number from date.
 int dayCalculation(int m, int d, int y)
 {
   m = (m + 9) % 12;
@@ -177,8 +167,8 @@ void printTime()
 {
   display.clear();
 
-  //To keep time updated you need to call now() from time to time inside loop
-  //in this case getTimeDateString() implies a call to now()
+  // To keep time updated you need to call now() from time to time inside loop
+  // in this case getTimeDateString() implies a call to now()
   // Time and data string broken down into array string under
   String theTime[6] = {NTP.getTimeDateString().substring(0, 2), NTP.getTimeDateString().substring(3, 5), NTP.getTimeDateString().substring(6, 8),
                        NTP.getTimeDateString().substring(9, 11), NTP.getTimeDateString().substring(12, 14), NTP.getTimeDateString().substring(15, 19)};
@@ -243,11 +233,7 @@ void printTime()
   display.setFont(ArialMT_Plain_16);                                                                                                                             // Font and size
   display.drawString(87, 42, "W: " + String(round((weeksOfWorkInDays / 7.0) + 0.7)).substring(0, 2));
 
-  // Battery level section (Function doesn't work)
-  //display.drawString(60, 0, "B:" + String(batteryLevel()));
-
   // Moon phase section
-  int j = JulianDate(theTime[3].toInt(), theTime[4].toInt(), theTime[5].toInt());
   double ag = MoonAge(theTime[3].toInt(), theTime[4].toInt(), theTime[5].toInt()); // Using this algorythm, found it easier
 
   display.setFont(Moon_Phases_14); // Font and size
@@ -256,7 +242,8 @@ void printTime()
   Serial.print("Moon age: ");
   Serial.println(int(ag));
 
-  String letter;
+  String letter; // Variable to hold letter/character representing moonphase
+  
   switch (int(ag))
   {
   case 0: letter = "0"; break; // full Moon
@@ -295,10 +282,9 @@ void printTime()
   case 30: letter = "1"; break; // New Moon
   default: display.drawString(60, 25, String(ag));
   }
+  
   display.drawString(0, 25, letter); // Moon phase
-
   display.display();
-
   delay(1000);
 }
 
@@ -311,7 +297,7 @@ void setup()
 
   display.setContrast(100, 50, 64);
   // Convenience method to access
-  //display.setBrightness(15);
+  // display.setBrightness(15);
 
   Serial.begin(115200);
   Serial.println();
